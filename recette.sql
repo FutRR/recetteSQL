@@ -73,11 +73,12 @@
     SET tempsPreparation = tempsPreparation - 5
 
 -- 15- Afficher les recettes qui ne nécessitent pas d’ingrédients coûtant plus de 2€ par unité de mesure
-    SELECT recette.id_recette, recette.nomRecette, ingredient.nomIngredient, ingredient.prixIngredient
+    SELECT recette.nomRecette
     FROM recette
     INNER JOIN contenir ON recette.id_recette = contenir.id_recette
     INNER JOIN ingredient ON contenir.id_ingredient = ingredient.id_ingredient
-    WHERE ingredient.prixIngredient < 2;
+    GROUP BY recette.id_recette
+    HAVING MAX(ingredient.prixIngredient) <= 2;
 
 -- 16- Afficher la / les recette(s) les plus rapides à préparer
     SELECT nomRecette, tempsPreparation
@@ -103,6 +104,17 @@
 -- 19- Ajouter un nouvel ingrédient à une recette spécifique
     INSERT INTO ingredient(nomIngredient, prixIngredient, uniteMesure)
     VALUES ("Piment","7.5","g")
-    UPDATE contenir
-    SET contenir.id_ingredient = 31
-    WHERE contenir.id_recette = 1;
+    INSERT INTO contenir(id_recette, id_ingredient, quantite)
+    VALUES (1, 31, 2);
+
+-- 20- Bonus : Trouver la recette la plus coûteuse de la base de données (il peut y avoir des ex aequo, il est donc exclu d’utiliser la clause LIMIT)
+    SELECT ROUND(SUM(ingredient.prixIngredient*contenir.quantite), 2) AS prixTotal, recette.nomRecette
+    FROM contenir
+    INNER JOIN recette ON contenir.id_recette = recette.id_recette
+    INNER JOIN ingredient ON contenir.id_ingredient = ingredient.id_ingredient
+    GROUP BY contenir.id_recette
+    HAVING prixTotal >= ALL (
+        SELECT ROUND(SUM(ingredient.prixIngredient*contenir.quantite), 2) AS prixTotal
+        FROM contenir
+        INNER JOIN ingredient ON contenir.id_ingredient = ingredient.id_ingredient
+        GROUP BY contenir.id_recette)
