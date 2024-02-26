@@ -1,25 +1,30 @@
 <?php
-try {
-    // On se connecte à MySQL
-    $mysqlClient = new PDO('mysql:host=localhost;dbname=recette_maxime;charset=utf8', 'root', '');
-} catch (Exception $e) {
-    // En cas d'erreur, on affiche un message et on arrête tout
-    die('Erreur : ' . $e->getMessage());
-}
-// Si tout va bien, on peut continuer
 
-// On récupère tout le contenu de la table recipes
-$sqlQuery = 'SELECT * FROM recette WHERE id_categorie = 2';
-$recetteStatement = $mysqlClient->prepare($sqlQuery);
-$recetteStatement->execute();
-$recettes = $recetteStatement->fetchAll();
-
-// On affiche chaque recette une à une
-foreach ($recettes as $recette) {
-    ?>
-    <p>
-        <?php echo $recette['nomRecette']; ?>
-    </p>
-    <?php
-}
+session_start();
+require_once(__DIR__ . '/config/mysql.php');
+require_once(__DIR__ . '/databaseconnect.php');
+require_once(__DIR__ . '/variables.php');
+require_once(__DIR__ . '/functions.php');
 ?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recettes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div class="wrapper">
+
+
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
