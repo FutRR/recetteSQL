@@ -23,13 +23,16 @@ if (isset($_GET["action"])) {
                     <a class='link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover' href=''>
                         {$recette['nomCategorie']}
                     </a>
-                </article>
+                    </article>";
+            }
+            echo "<a class='btn btn-warning' href='traitement.php?action=ajoutRecette'>Ajouter une recette</a>
+
                 <script>
                     if (document.title != 'Recettes') {
                         document.title = 'Recettes';
                     } </script>";
 
-            }
+
             $content = ob_get_clean();
             require_once "index.php";
             break;
@@ -67,7 +70,7 @@ if (isset($_GET["action"])) {
 
                 if ($details) {
                     echo "<h2>Détails de la recette : " . $details['nomRecette'] . "</h2>";
-                    if (isset($ingredient)) {
+                    if (isset($listIngredients)) {
                         echo "<h3>Ingrédients : </h3><ul>";
                         foreach ($listIngredients as $ingredient) {
                             echo "<li>{$ingredient['nomIngredient']} - {$ingredient['quantite']} {$ingredient['uniteMesure']} | environ {$ingredient['prixTotal']} €</li>";
@@ -94,6 +97,67 @@ if (isset($_GET["action"])) {
             require_once "index.php";
 
             break;
+
+        case "ajoutRecette":
+            ob_start();
+            echo "<div class='container-fluid'>
+                    <div class='col align-self-center'>
+                        <form action='traitement.php?action=add' method='POST' autocomplete='off' enctype='multipart/form-data'
+                        class='mb-3 mx-auto'>
+                            <p>
+                                <label class='form-label'>
+                                    Nom de la recette :
+                                    <input type='text' name='nomRecette' class='form-control'>
+                                </label>
+                            </p>
+                            <p>
+                                <label class='form-label'>
+                                    Temps de préparation :
+                                    <input type='number' step='any' name='tempsPreparation' class='form-control' min='1'>
+                                </label>
+                            </p>
+                            <p>
+                                <label class='form-label'>
+                                    Instructions :
+                                    <textarea name='instructions' class='form-control' rows='3'></textarea>
+                                </label>
+                            </p>
+                            <p>
+                                <label class='form-label'>
+                                    Ingrédients :
+                                    <input type='number' name='id_ingredient' value='1' class='form-control'>
+                                </label>
+                            </p>
+                            <p>
+                                <label class='form-label'>
+                                    Image :
+                                    <input type='file' name='image' class='form-control'>
+                                </label>
+                            </p>
+                            <p>
+                                <input class='btn btn-warning' type='submit' name='submit' value='Ajouter la recette'>
+                            </p>
+                        </form>";
+
+            $content = ob_get_clean();
+            require_once "index.php";
+
+            break;
+
+        case "add":
+            if (isset($_POST["submit"])) {
+                $nomRecette = $_POST["nomRecette"];
+                $tempsPreparation = $_POST["tempsPreparation"];
+                $instructions = $_POST["instructions"];
+                $id_ingredient = $_POST["id_ingredient"];
+                $image = $_POST["image"];
+
+                $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, image)
+                        VALUES (:nomRecette, :tempsPreparation, :instructions, :image)";
+            }
+
+
+            break;
     }
 } else {
     ob_start();
@@ -107,12 +171,15 @@ if (isset($_GET["action"])) {
             <a class='link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover' href=''>
                 {$recette['nomCategorie']}
             </a>
-        </article>
+        </article>";
+    }
+    echo "<a class='btn btn-warning' href='traitement.php?action=ajoutRecette'>Ajouter une recette</a>
+
         <script>
         if (document.title != 'Recettes') {
             document.title = 'Recettes';
         } </script>";
-    }
+
     $content = ob_get_clean();
     require_once "index.php";
 }

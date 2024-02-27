@@ -11,6 +11,10 @@
                     <a class="nav-link active" aria-current="page"
                         href="traitement.php?action=listerRecettes">Recettes</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="traitement.php?action=ajoutRecette">Ajouter
+                        une recette</a>
+                </li>
 
             </ul>
         </div>
