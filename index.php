@@ -12,7 +12,7 @@ ob_start();
 <?php foreach (getRecettes($recettes) as $recette): ?>
     <article>
         <a class="mt-5 link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover"
-            href="details.php?action=infosRecette&id=<?= $recette['id_recette'] ?>">
+            href="traitement.php?action=infosRecettes&id=<?= $recette['id_recette'] ?>">
             <?= $recette['nomRecette']; ?>
         </a>
         |

@@ -14,7 +14,7 @@
 
     <div class="container">
 
-        <h1 class="mt-5">Site de recettes</h1>
+        <h1 class="mt-5">MarmiThon</h1>
 
         <?= $content ?>
 
