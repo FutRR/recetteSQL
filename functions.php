@@ -22,3 +22,15 @@ function getIngredients(array $ingredients): array
 
     return $results;
 }
+
+function getCategories(array $categories): array
+{
+    $results = [];
+
+    foreach ($categories as $categorie) {
+        $results[] = $categorie;
+
+    }
+
+    return $results;
+}

@@ -32,6 +32,11 @@ if (isset($_GET["action"])) {
                         document.title = 'Recettes';
                     } </script>";
 
+            if (isset($_SESSION['message'])) {
+                echo $_SESSION['message'];
+                unset($_SESSION['message']);
+            }
+
 
             $content = ob_get_clean();
             require_once "index.php";
@@ -45,7 +50,6 @@ if (isset($_GET["action"])) {
                 $sql = "SELECT recette.nomRecette, recette.tempsPreparation, recette.instructions, recette.image,categorie.nomCategorie
                         FROM recette
                         INNER JOIN categorie ON recette.id_categorie = categorie.id_categorie
-                        INNER JOIN contenir ON recette.id_recette = contenir.id_recette
                         WHERE recette.id_recette = :id_recette";
 
                 $detailStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
@@ -70,7 +74,7 @@ if (isset($_GET["action"])) {
 
                 if ($details) {
                     echo "<h2>Détails de la recette : " . $details['nomRecette'] . "</h2>";
-                    if (isset($listIngredients)) {
+                    if ($listIngredients) {
                         echo "<h3>Ingrédients : </h3><ul>";
                         foreach ($listIngredients as $ingredient) {
                             echo "<li>{$ingredient['nomIngredient']} - {$ingredient['quantite']} {$ingredient['uniteMesure']} | environ {$ingredient['prixTotal']} €</li>";
@@ -124,15 +128,40 @@ if (isset($_GET["action"])) {
                             </p>
                             <p>
                                 <label class='form-label'>
-                                    Ingrédients :
-                                    <input type='number' name='id_ingredient' value='1' class='form-control'>
+                                    Catégorie :
+                                    <select name='id_categorie' value='1' class='form-control'>
+                                        ";
+            foreach ($categories as $categorie) {
+                echo "<option value='{$categorie['id_categorie']}'>{$categorie['nomCategorie']}</option>";
+            }
+            echo "
+                                    </select>
                                 </label>
                             </p>
                             <p>
                                 <label class='form-label'>
-                                    Image :
-                                    <input type='file' name='image' class='form-control'>
+                                    Lien de l'image :
+                                    <input type='text' name='image' class='form-control'>
                                 </label>
+                            </p>
+                            <p>
+                                <fieldset>
+                                    <legend>Ingrédients :</legend>";
+            foreach (getIngredients($ingredients) as $ingredient) {
+                echo "<div class='form-check checkbox-lg'>
+                        <label class='form-check-label'>
+                        {$ingredient['nomIngredient']}
+                        <input type='checkbox' id='{$ingredient['id_ingredient']}' name='id_ingredient' class='form-control form-check-input'/>
+                        </label>
+
+                        <label class='form-label' for='{$ingredient['id_ingredient']}'>
+                        Quantité :
+                        <input type='number' step='any' name='quantite' class='form-control' min='0'>
+                        </label>
+                    </div>";
+            }
+            echo "
+                                </fieldset>
                             </p>
                             <p>
                                 <input class='btn btn-warning' type='submit' name='submit' value='Ajouter la recette'>
@@ -149,11 +178,52 @@ if (isset($_GET["action"])) {
                 $nomRecette = $_POST["nomRecette"];
                 $tempsPreparation = $_POST["tempsPreparation"];
                 $instructions = $_POST["instructions"];
-                $id_ingredient = $_POST["id_ingredient"];
+                $id_categorie = $_POST["id_categorie"];
                 $image = $_POST["image"];
+                $id_ingredient = $_POST["id_ingredient"];
+                $quantite = $_POST["quantite"];
 
-                $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, image)
-                        VALUES (:nomRecette, :tempsPreparation, :instructions, :image)";
+
+                $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, id_categorie, image)
+                        VALUES (:nomRecette, :tempsPreparation, :instructions, :id_categorie, :image)";
+
+                $formStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                $formStatement->bindValue(':nomRecette', $nomRecette);
+                $formStatement->bindValue(':tempsPreparation', $tempsPreparation);
+                $formStatement->bindValue(':instructions', $instructions);
+                $formStatement->bindValue(':id_categorie', $id_categorie);
+                $formStatement->bindValue(':image', $image);
+
+                $inserted_id = $mysqlClient->lastInsertId();
+
+                $sql = "INSERT INTO contenir (id_recette, id_ingredient, quantite)
+                VALUES (:id_recette, :id_ingredient, :quantite)";
+
+                $checkboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                $checkboxStatement->bindValue(':id_recette', $inserted_id);
+                $checkboxStatement->bindValue(':id_ingredient', $id_ingredient);
+                $checkboxStatement->bindValue(':quantite', $quantite);
+
+
+                $form = $formStatement->execute();
+                $checkboxStatement->execute();
+
+
+
+
+
+                if ($form) {
+                    $_SESSION['message'] = "<p class='alert alert-success'>Recette envoyée</p>";
+                    header('Location:traitement.php?listerRecettes');
+                    exit(0);
+                } else {
+                    $_SESSION['message'] = "<p class='alert alert-success'>Recette non envoyée</p>";
+                    header('Location:traitement.php?listerRecettes');
+                    exit(0);
+
+                }
             }
 
 
