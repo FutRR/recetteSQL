@@ -11,6 +11,9 @@ foreach (getRecettes($recettes) as $recette) { ?>
         <a class='link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover' href=''>
             <?= $recette['nomCategorie'] ?>
         </a>
+        |
+        <a class='btn btn-danger btn-sm' href='traitement.php?action=delete&id=<?= $recette['id_recette'] ?>'>Supprimer</a>
+
     </article>
     <?php
 }
@@ -20,7 +23,7 @@ foreach (getRecettes($recettes) as $recette) { ?>
 <script>
     if (document.title != 'Recettes') {
         document.title = 'Recettes';
-    } 
+    }
 </script>
 
 <?php

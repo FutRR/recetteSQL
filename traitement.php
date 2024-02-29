@@ -106,6 +106,28 @@ if (isset($_GET["action"])) {
                 header("Location:traitement.php?action=listerRecettes");
             }
             break;
+
+        case "delete":
+            if (isset($_GET["id"])) {
+                $index = $_GET["id"];
+
+                $sql = "DELETE FROM contenir WHERE id_recette = :id_recette";
+                $deleteStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                $deleteStatement->execute([
+                    "id_recette" => $index,
+                ]);
+
+                $sql = "DELETE FROM recette WHERE id_recette = :id_recette";
+                $deleteRecetteStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                $deleteRecetteStatement->execute([
+                    "id_recette" => $index,
+                ]);
+
+                header("Location:traitement.php?action=listerRecettes");
+            }
+            break;
     }
 
 } else {
