@@ -6,8 +6,6 @@ require_once(__DIR__ . '/variables.php');
 require_once(__DIR__ . '/functions.php');
 
 
-
-
 if (isset($_GET["action"])) {
 
     switch ($_GET["action"]) {
@@ -64,7 +62,7 @@ if (isset($_GET["action"])) {
                 $quantite = $_POST["quantite"];
 
 
-                $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, id_categorie, image)
+                $sql = "INSERT INTO `recette` (`nomRecette`, `tempsPreparation`, `instructions`, `id_categorie`, `image`)
                         VALUES (:nomRecette, :tempsPreparation, :instructions, :id_categorie, :image)";
 
                 $formStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
@@ -75,20 +73,37 @@ if (isset($_GET["action"])) {
                 $formStatement->bindValue(':id_categorie', $id_categorie);
                 $formStatement->bindValue(':image', $image);
 
+                $ingredients = $_POST["id_ingredient"];
+                $quantites = array_filter($_POST["quantite"]);
+
+                $ingredients_quantites = [];
+                foreach ($quantites as $id_ingredient => $qtt) {
+                    # code...
+                    $ingredients_quantites[] = [$id_ingredient, $qtt];
+
+                }
+
+                $formStatement->execute();
+
                 $inserted_id = $mysqlClient->lastInsertId();
 
+                // var_dump($ingredients_quantites);
+                // die;
 
                 $sql = "INSERT INTO contenir (id_recette, id_ingredient, quantite)
                             VALUES (:id_recette, :id_ingredient, :quantite)";
 
-                $checkboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
 
-                $checkboxStatement->bindValue(':id_recette', $inserted_id);
-                $checkboxStatement->bindValue(':id_ingredient', $id_ingredient);
-                $checkboxStatement->bindValue(':quantite', $quantite);
+                foreach ($ingredients_quantites as $iq) {
+                    $checkboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
 
-                $checkboxStatement->execute();
-                $formStatement->execute();
+                    $checkboxStatement->execute([
+                        "id_recette" => $inserted_id,
+                        "id_ingredient" => $iq[0],
+                        "quantite" => $iq[1],
+                    ]);
+                }
+                header("Location:traitement.php?action=listerRecettes");
             }
             break;
     }

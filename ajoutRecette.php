@@ -3,8 +3,7 @@ ob_start();
 ?>
 <div class="container-fluid">
     <div class="col align-self-center">
-        <form action="traitement.php?action=add" method="POST" autocomplete="off" enctype="multipart/form-data"
-            class="mb-3 mx-auto">
+        <form action="traitement.php?action=add" method="POST" enctype="multipart/form-data" class="mb-3 mx-auto">
             <p>
                 <label class="form-label">
                     Nom de la recette :
@@ -28,7 +27,7 @@ ob_start();
                     Catégorie :
                     <select name="id_categorie" value="1" class="form-control">
                         <?php foreach ($categories as $categorie) {
-                            echo "<option value='{$categorie[' id_categorie']}'>{$categorie['nomCategorie']}</option>";
+                            echo "<option value='{$categorie['id_categorie']}'>{$categorie['nomCategorie']}</option>";
                         } ?>
                     </select>
                 </label>
@@ -45,7 +44,8 @@ ob_start();
                 <?php foreach (getIngredients($ingredients) as $ingredient) { ?>
                     <div class="form-check checkbox-lg">
                         <label class="form-check-label">
-                            <?= $ingredient["nomIngredient"] ?>
+                            <?= $ingredient["nomIngredient"] ?> (par
+                            <?= $ingredient['uniteMesure'] ?>)
                             <input type="checkbox" id="<?= $ingredient["id_ingredient"] ?>"
                                 value="<?= $ingredient["id_ingredient"] ?>" name="id_ingredient[]"
                                 class="form-control form-check-input" />
@@ -53,7 +53,7 @@ ob_start();
 
                         <label class="form-label" for="<?= $ingredient["id_ingredient"] ?>">
                             Quantité :
-                            <input type="number" step="any" value="quantite" name="quantite" class="form-control" min="0">
+                            <input type="number" name="quantite[]" class="form-control">
                         </label>
                     </div>
                 <?php } ?>
