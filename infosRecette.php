@@ -13,6 +13,7 @@ if ($details) {
         echo "<h3>Pas d'ingrédients</h3>";
     }
     echo "<h4>Instructions : </h4><p>{$details['instructions']}</p>";
+    echo "<a class='btn btn-warning mb-3' href='traitement.php?action=updateRecette&id={$details['id_recette']}'>Modifier</a>";
     echo "<img class='img-fluid' src='{$details['image']}' alt='Image de la recette'/>";
 } else {
     echo "Pas de résultats";
@@ -25,7 +26,6 @@ if ($details) {
 </script>
 
 
-//Ending Output buffering and assigning the code to $content variable
 <?php
 $content = ob_get_clean();
 require_once "index.php";

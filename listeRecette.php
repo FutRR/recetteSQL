@@ -20,6 +20,9 @@ foreach (getRecettes($recettes) as $recette) { ?>
 ?>
 <a class='btn btn-warning' href='traitement.php?action=ajoutRecette'>Ajouter une recette</a>
 
+<a class='btn btn-warning' href='traitement.php?action=ajoutIngredient'>Ajouter un ingrédient</a>
+
+
 <script>
     if (document.title != 'Recettes') {
         document.title = 'Recettes';

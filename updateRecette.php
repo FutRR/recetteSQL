@@ -3,7 +3,7 @@ ob_start();
 ?>
 <div class="container-fluid">
     <div class="col align-self-center">
-        <form action="traitement.php?action=addRecette" method="POST" enctype="multipart/form-data"
+        <form action="traitement.php?action=modifierRecette" method="POST" enctype="multipart/form-data"
             class="mb-3 mx-auto">
             <p>
                 <label class="form-label">
