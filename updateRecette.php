@@ -49,7 +49,8 @@ ob_start();
                         <label class="form-check-label">
                             <?= $ingredient["nomIngredient"] ?> (par
                             <?= $ingredient['uniteMesure'] ?>)
-                            <input type="checkbox" id="<?= $ingredient["id_ingredient"] ?>" value="" name="id_ingredient[]"
+                            <input type="checkbox" id="<?= $ingredient["id_ingredient"] ?>"
+                                value="<?= $ingredient["id_ingredient"] ?>" name="id_ingredient[]"
                                 class="form-control form-check-input" />
                         </label>
 

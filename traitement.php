@@ -59,7 +59,6 @@ if (isset($_GET["action"])) {
                 $id_categorie = $_POST["id_categorie"];
                 $image = $_POST["image"];
                 $ingredients = $_POST["id_ingredient"];
-                $quantite = $_POST["quantite"];
                 $quantites = array_filter($_POST["quantite"]);
 
 
@@ -76,19 +75,10 @@ if (isset($_GET["action"])) {
 
                 $formStatement->execute();
 
-                var_dump($ingredients);
-                var_dump($quantite);
-
-                var_dump($quantites);
-
                 $ingredients_quantites = [];
-                foreach ($quantites as $qtt => $id_ingredient) {
-                    $ingredients_quantites[] = [$qtt, $id_ingredient];
+                foreach ($ingredients as $id_ingredient) {
+                    $ingredients_quantites[] = [$id_ingredient, $quantites[$id_ingredient - 1]];
                 }
-                var_dump($ingredients_quantites);
-
-                die;
-
 
                 $inserted_id = $mysqlClient->lastInsertId();
 
@@ -112,7 +102,6 @@ if (isset($_GET["action"])) {
         case "updateRecette":
             if (isset($_GET['id'])) {
                 $index = $_GET["id"];
-
 
                 // Recipe info Request
                 $sql = "SELECT recette.id_recette, recette.nomRecette, recette.tempsPreparation, recette.instructions, recette.id_categorie, recette.image, categorie.nomCategorie
@@ -142,65 +131,60 @@ if (isset($_GET["action"])) {
         case "modifierRecette":
             if (isset($_GET['id'])) {
                 $index = $_GET['id'];
-            }
-            if (isset($_POST["submit"])) {
-                $nomRecette = $_POST["nomRecette"];
-                $tempsPreparation = $_POST["tempsPreparation"];
-                $instructions = $_POST["instructions"];
-                $id_categorie = $_POST["id_categorie"];
-                $image = $_POST["image"];
-                $id_ingredient = $_POST["id_ingredient"];
-                $quantite = $_POST["quantite"];
 
-                $sql = "UPDATE recette
-                            SET nomRecette = :nomRecette, 
+                if (isset($_POST["submit"])) {
+                    $nomRecette = $_POST["nomRecette"];
+                    $tempsPreparation = $_POST["tempsPreparation"];
+                    $instructions = $_POST["instructions"];
+                    $id_categorie = $_POST["id_categorie"];
+                    $image = $_POST["image"];
+                    $ingredients = $_POST["id_ingredient"];
+                    $quantites = array_filter($_POST["quantite"]);
+
+                    $sql = "UPDATE recette
+                            SET nomRecette = :nomRecette,
                                 tempsPreparation = :tempsPreparation, 
                                 instructions = :instructions, 
                                 id_categorie = :id_categorie, 
                                 image = :image
                             WHERE id_recette = :id_recette";
 
-                $updateStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+                    $updateStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
 
-                $updateStatement->execute([
-                    'id_recette' => $index,
-                    'nomRecette' => $nomRecette,
-                    'tempsPreparation' => $tempsPreparation,
-                    'instructions' => $instructions,
-                    'id_categorie' => $id_categorie,
-                    'image' => $image,
-                ]);
-
-
-
-                $ingredients = $_POST["id_ingredient"];
-                $quantites = array_filter($_POST["quantite"]);
-
-
-
-                $ingredients_quantites = [];
-                foreach ($quantites as $id_ingredient => $qtt) {
-                    $ingredients_quantites[] = [$id_ingredient, $qtt];
-                }
-
-                var_dump($quantites);
-
-
-                $sql = "UPDATE contenir
-                            SET id_ingredient = :id_ingredient, 
-                                quantite = :quantite
-                            WHERE id_recette = :id_recette";
-
-                foreach ($ingredients_quantites as $iq) {
-                    $updateCheckboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-
-                    $updateCheckboxStatement->execute([
-                        "id_recette" => $index,
-                        "id_ingredient" => $iq[0],
-                        "quantite" => $iq[1],
+                    $updateStatement->execute([
+                        'id_recette' => $index,
+                        'nomRecette' => $nomRecette,
+                        'tempsPreparation' => $tempsPreparation,
+                        'instructions' => $instructions,
+                        'id_categorie' => $id_categorie,
+                        'image' => $image,
                     ]);
+
+                    $ingredients_quantites = [];
+                    foreach ($ingredients as $id_ingredient) {
+                        $ingredients_quantites[] = [$id_ingredient, $quantites[$id_ingredient - 1]];
+                    }
+
+                    var_dump($index);
+
+                    $sql = "INSERT INTO contenir (id_ingredient, quantite) VALUES (:id_ingredient, :quantite)
+                    ON DUPLICATE KEY UPDATE id_ingredient=:id_ingredient2, quantite:quantite2
+                    WHERE id_recette = :id_recette";
+
+                    foreach ($ingredients_quantites as $iq) {
+                        $updateCheckboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                        $updateCheckboxStatement->bindParam(':id_recette', $index);
+                        $updateCheckboxStatement->bindParam(':id_ingredient', $iq[0]);
+                        $updateCheckboxStatement->bindParam(':quantite', $iq[1]);
+                        $updateCheckboxStatement->bindParam(':id_ingredient2', $iq[0]);
+                        $updateCheckboxStatement->bindParam(':quantite2', $iq[1]);
+
+                        $updateCheckboxStatement->execute();
+                    }
                 }
                 header("Location:traitement.php?action=listerRecettes");
+
             }
             break;
 
