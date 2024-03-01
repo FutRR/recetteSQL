@@ -18,7 +18,7 @@ if (isset($_GET["action"])) {
                 $index = $_GET["id"];
 
                 // Recipe info Request
-                $sql = "SELECT recette.nomRecette, recette.tempsPreparation, recette.instructions, recette.image,categorie.nomCategorie
+                $sql = "SELECT recette.id_recette, recette.nomRecette, recette.tempsPreparation, recette.instructions, recette.image,categorie.nomCategorie
                         FROM recette
                         INNER JOIN categorie ON recette.id_categorie = categorie.id_categorie
                         WHERE recette.id_recette = :id_recette";
@@ -58,11 +58,12 @@ if (isset($_GET["action"])) {
                 $instructions = $_POST["instructions"];
                 $id_categorie = $_POST["id_categorie"];
                 $image = $_POST["image"];
-                $id_ingredient = $_POST["id_ingredient"];
+                $ingredients = $_POST["id_ingredient"];
                 $quantite = $_POST["quantite"];
+                $quantites = array_filter($_POST["quantite"]);
 
 
-                $sql = "INSERT INTO `recette` (`nomRecette`, `tempsPreparation`, `instructions`, `id_categorie`, `image`)
+                $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, id_categorie, image)
                         VALUES (:nomRecette, :tempsPreparation, :instructions, :id_categorie, :image)";
 
                 $formStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
@@ -73,15 +74,21 @@ if (isset($_GET["action"])) {
                 $formStatement->bindValue(':id_categorie', $id_categorie);
                 $formStatement->bindValue(':image', $image);
 
-                $ingredients = $_POST["id_ingredient"];
-                $quantites = array_filter($_POST["quantite"]);
+                $formStatement->execute();
+
+                var_dump($ingredients);
+                var_dump($quantite);
+
+                var_dump($quantites);
 
                 $ingredients_quantites = [];
-                foreach ($quantites as $id_ingredient => $qtt) {
-                    $ingredients_quantites[] = [$id_ingredient, $qtt];
+                foreach ($quantites as $qtt => $id_ingredient) {
+                    $ingredients_quantites[] = [$qtt, $id_ingredient];
                 }
+                var_dump($ingredients_quantites);
 
-                $formStatement->execute();
+                die;
+
 
                 $inserted_id = $mysqlClient->lastInsertId();
 
@@ -102,6 +109,102 @@ if (isset($_GET["action"])) {
             }
             break;
 
+        case "updateRecette":
+            if (isset($_GET['id'])) {
+                $index = $_GET["id"];
+
+
+                // Recipe info Request
+                $sql = "SELECT recette.id_recette, recette.nomRecette, recette.tempsPreparation, recette.instructions, recette.id_categorie, recette.image, categorie.nomCategorie
+                        FROM recette
+                        INNER JOIN categorie ON recette.id_categorie = categorie.id_categorie
+                        WHERE recette.id_recette = :id_recette";
+
+                $detailStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+                $detailStatement->execute(["id_recette" => $index]);
+                $details = $detailStatement->fetch();
+
+                $sql = "SELECT contenir.id_recette, contenir.id_ingredient, contenir.quantite, ingredient.nomIngredient
+                FROM contenir
+                INNER JOIN ingredient ON contenir.id_ingredient = ingredient.id_ingredient
+                INNER JOIN recette ON contenir.id_recette = recette.id_recette
+                WHERE recette.id_recette = :id_recette";
+
+                $ingredientDetailStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+                $ingredientDetailStatement->execute(["id_recette" => $index]);
+                $ingredientDetails = $ingredientDetailStatement->fetchAll();
+
+            }
+            require_once(__DIR__ . '/updateRecette.php');
+
+            break;
+
+        case "modifierRecette":
+            if (isset($_GET['id'])) {
+                $index = $_GET['id'];
+            }
+            if (isset($_POST["submit"])) {
+                $nomRecette = $_POST["nomRecette"];
+                $tempsPreparation = $_POST["tempsPreparation"];
+                $instructions = $_POST["instructions"];
+                $id_categorie = $_POST["id_categorie"];
+                $image = $_POST["image"];
+                $id_ingredient = $_POST["id_ingredient"];
+                $quantite = $_POST["quantite"];
+
+                $sql = "UPDATE recette
+                            SET nomRecette = :nomRecette, 
+                                tempsPreparation = :tempsPreparation, 
+                                instructions = :instructions, 
+                                id_categorie = :id_categorie, 
+                                image = :image
+                            WHERE id_recette = :id_recette";
+
+                $updateStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                $updateStatement->execute([
+                    'id_recette' => $index,
+                    'nomRecette' => $nomRecette,
+                    'tempsPreparation' => $tempsPreparation,
+                    'instructions' => $instructions,
+                    'id_categorie' => $id_categorie,
+                    'image' => $image,
+                ]);
+
+
+
+                $ingredients = $_POST["id_ingredient"];
+                $quantites = array_filter($_POST["quantite"]);
+
+
+
+                $ingredients_quantites = [];
+                foreach ($quantites as $id_ingredient => $qtt) {
+                    $ingredients_quantites[] = [$id_ingredient, $qtt];
+                }
+
+                var_dump($quantites);
+
+
+                $sql = "UPDATE contenir
+                            SET id_ingredient = :id_ingredient, 
+                                quantite = :quantite
+                            WHERE id_recette = :id_recette";
+
+                foreach ($ingredients_quantites as $iq) {
+                    $updateCheckboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+
+                    $updateCheckboxStatement->execute([
+                        "id_recette" => $index,
+                        "id_ingredient" => $iq[0],
+                        "quantite" => $iq[1],
+                    ]);
+                }
+                header("Location:traitement.php?action=listerRecettes");
+            }
+            break;
+
+
         case "ajoutIngredient":
             require_once(__DIR__ . '/ajoutIngredient.php');
             break;
@@ -111,8 +214,6 @@ if (isset($_GET["action"])) {
                 $nomIngredient = $_POST["nomIngredient"];
                 $prixIngredient = $_POST["prixIngredient"];
                 $uniteMesure = $_POST["uniteMesure"];
-
-                var_dump($_POST);
 
                 $sql = "INSERT INTO ingredient (nomIngredient, prixIngredient, uniteMesure)
                         VALUES (:nomIngredient, :prixIngredient, :uniteMesure)";
@@ -126,71 +227,6 @@ if (isset($_GET["action"])) {
 
                 header("Location:traitement.php?action=listerRecettes");
 
-            }
-            break;
-        case "updateRecette":
-            require_once(__DIR__ . '/updateRecette.php');
-            break;
-
-        case "modifierRecette":
-            if (isset($_GET['id'])) {
-                $index = $_GET["id"];
-            }
-            if (isset($_POST["submit"])) {
-                $nomRecette = $_POST["nomRecette"];
-                $tempsPreparation = $_POST["tempsPreparation"];
-                $instructions = $_POST["instructions"];
-                $id_categorie = $_POST["id_categorie"];
-                $image = $_POST["image"];
-                $id_ingredient = $_POST["id_ingredient"];
-                $quantite = $_POST["quantite"];
-                $index = $_POST['id_recette'];
-
-
-                $sql = "UPDATE `recette`
-                        SET `nomRecette` = :nomRecette, 
-                            `tempsPreparation` = :tempsPreparation, 
-                            `instructions` = :instructions, 
-                            `id_categorie` = :id_categorie, 
-                            `image` :image
-                        WHERE `id_recette` = :id_recette";
-
-                $updateStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-
-                $updateStatement->bindValue(':nomRecette', $nomRecette);
-                $updateStatement->bindValue(':tempsPreparation', $tempsPreparation);
-                $updateStatement->bindValue(':instructions', $instructions);
-                $updateStatement->bindValue(':id_categorie', $id_categorie);
-                $updateStatement->bindValue(':image', $image);
-
-                $ingredients = $_POST["id_ingredient"];
-                $quantites = array_filter($_POST["quantite"]);
-
-                $ingredients_quantites = [];
-                foreach ($quantites as $id_ingredient => $qtt) {
-                    $ingredients_quantites[] = [$id_ingredient, $qtt];
-                }
-
-                $updateStatement->execute();
-
-                $inserted_id = $mysqlClient->lastInsertId();
-
-                $sql = "UPDATE contenir
-                        SET id_ingredient = :id_ingredient, 
-                            quantite = :quantite
-                        WHERE id_recette = :id_recette";
-
-
-                foreach ($ingredients_quantites as $iq) {
-                    $updateCheckboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
-
-                    $updateCheckboxStatement->execute([
-                        "id_recette" => $inserted_id,
-                        "id_ingredient" => $iq[0],
-                        "quantite" => $iq[1],
-                    ]);
-                }
-                header("Location:traitement.php?action=listerRecettes");
             }
             break;
 
