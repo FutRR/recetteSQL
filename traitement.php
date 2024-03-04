@@ -53,13 +53,13 @@ if (isset($_GET["action"])) {
 
         case "addRecette":
             if (isset($_POST["submit"])) {
-                $nomRecette = $_POST["nomRecette"];
-                $tempsPreparation = $_POST["tempsPreparation"];
-                $instructions = $_POST["instructions"];
-                $id_categorie = $_POST["id_categorie"];
-                $image = $_POST["image"];
-                $ingredients = $_POST["id_ingredient"];
-                $quantites = array_filter($_POST["quantite"]);
+                $nomRecette = filter_var($_POST["nomRecette"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $tempsPreparation = filter_var($_POST["tempsPreparation"], FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_INT);
+                $instructions = filter_var($_POST["instructions"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $id_categorie = filter_var($_POST["id_categorie"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $image = filter_var($_POST["image"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $ingredients = filter_var($_POST["ingredients"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $quantites = filter_var(array_filter($_POST["quantite"]), FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_FLOAT);
 
 
                 $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, id_categorie, image)
@@ -96,6 +96,8 @@ if (isset($_GET["action"])) {
                     ]);
                 }
                 header("Location:traitement.php?action=listerRecettes");
+                die;
+
             }
             break;
 
@@ -133,13 +135,13 @@ if (isset($_GET["action"])) {
                 $index = $_GET['id'];
 
                 if (isset($_POST["submit"])) {
-                    $nomRecette = $_POST["nomRecette"];
-                    $tempsPreparation = $_POST["tempsPreparation"];
-                    $instructions = $_POST["instructions"];
-                    $id_categorie = $_POST["id_categorie"];
-                    $image = $_POST["image"];
-                    $ingredients = $_POST["id_ingredient"];
-                    $quantites = array_filter($_POST["quantite"]);
+                    $nomRecette = filter_var($_POST["nomRecette"], FILTER_SANITIZE_SPECIAL_CHARS);
+                    $tempsPreparation = filter_var($_POST["tempsPreparation"], FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_INT);
+                    $instructions = filter_var($_POST["instructions"], FILTER_SANITIZE_SPECIAL_CHARS);
+                    $id_categorie = filter_var($_POST["id_categorie"], FILTER_SANITIZE_SPECIAL_CHARS);
+                    $image = filter_var($_POST["image"], FILTER_SANITIZE_SPECIAL_CHARS);
+                    $ingredients = filter_var($_POST["ingredients"], FILTER_SANITIZE_SPECIAL_CHARS);
+                    $quantites = filter_var(array_filter($_POST["quantite"]), FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_INT);
 
                     $sql = "UPDATE recette
                             SET nomRecette = :nomRecette,
@@ -165,11 +167,18 @@ if (isset($_GET["action"])) {
                         $ingredients_quantites[] = [$id_ingredient, $quantites[$id_ingredient - 1]];
                     }
 
-                    var_dump($index);
+                    $sql = "DELETE FROM contenir WHERE id_recette = :id_recette";
+                    $delStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+                    $delStatement->execute([
+                        'id_recette' => $index,
+                    ]);
 
-                    $sql = "INSERT INTO contenir (id_ingredient, quantite) VALUES (:id_ingredient, :quantite)
-                    ON DUPLICATE KEY UPDATE id_ingredient=:id_ingredient2, quantite:quantite2
-                    WHERE id_recette = :id_recette";
+
+                    $sql = "INSERT INTO contenir (id_recette, id_ingredient, quantite) VALUES (:id_recette, :id_ingredient, :quantite)
+                    ON DUPLICATE KEY UPDATE 
+                    id_ingredient = IF( id_recette = :id_recette, :id_ingredient, id_ingredient ), 
+                    quantite = IF( id_recette = :id_recette, :quantite, quantite )";
+
 
                     foreach ($ingredients_quantites as $iq) {
                         $updateCheckboxStatement = $mysqlClient->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
@@ -177,13 +186,15 @@ if (isset($_GET["action"])) {
                         $updateCheckboxStatement->bindParam(':id_recette', $index);
                         $updateCheckboxStatement->bindParam(':id_ingredient', $iq[0]);
                         $updateCheckboxStatement->bindParam(':quantite', $iq[1]);
-                        $updateCheckboxStatement->bindParam(':id_ingredient2', $iq[0]);
-                        $updateCheckboxStatement->bindParam(':quantite2', $iq[1]);
+
+                        var_dump($index);
 
                         $updateCheckboxStatement->execute();
                     }
                 }
                 header("Location:traitement.php?action=listerRecettes");
+                die;
+
 
             }
             break;
@@ -195,9 +206,9 @@ if (isset($_GET["action"])) {
 
         case "addIngredient":
             if (isset($_POST["submit"])) {
-                $nomIngredient = $_POST["nomIngredient"];
-                $prixIngredient = $_POST["prixIngredient"];
-                $uniteMesure = $_POST["uniteMesure"];
+                $nomIngredient = filter_var($_POST["nomIngredient"], FILTER_SANITIZE_SPECIAL_CHARS);
+                $prixIngredient = filter_var($_POST["prixIngredient"], FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_FLOAT);
+                $uniteMesure = filter_var($_POST["uniteMesure"], FILTER_SANITIZE_SPECIAL_CHARS);
 
                 $sql = "INSERT INTO ingredient (nomIngredient, prixIngredient, uniteMesure)
                         VALUES (:nomIngredient, :prixIngredient, :uniteMesure)";
@@ -210,6 +221,7 @@ if (isset($_GET["action"])) {
                 ]);
 
                 header("Location:traitement.php?action=listerRecettes");
+                die;
 
             }
             break;
@@ -233,8 +245,14 @@ if (isset($_GET["action"])) {
                 ]);
 
                 header("Location:traitement.php?action=listerRecettes");
+                die;
             }
             break;
+
+        default:
+            require_once(__DIR__ . '/error.php');
+            break;
+
     }
 
 } else {
