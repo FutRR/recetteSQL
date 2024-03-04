@@ -54,12 +54,12 @@ if (isset($_GET["action"])) {
         case "addRecette":
             if (isset($_POST["submit"])) {
                 $nomRecette = filter_var($_POST["nomRecette"], FILTER_SANITIZE_SPECIAL_CHARS);
-                $tempsPreparation = filter_var($_POST["tempsPreparation"], FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_INT);
+                $tempsPreparation = filter_var($_POST["tempsPreparation"], FILTER_SANITIZE_NUMBER_INT);
                 $instructions = filter_var($_POST["instructions"], FILTER_SANITIZE_SPECIAL_CHARS);
                 $id_categorie = filter_var($_POST["id_categorie"], FILTER_SANITIZE_SPECIAL_CHARS);
                 $image = filter_var($_POST["image"], FILTER_SANITIZE_SPECIAL_CHARS);
                 $ingredients = filter_var($_POST["ingredients"], FILTER_SANITIZE_SPECIAL_CHARS);
-                $quantites = filter_var(array_filter($_POST["quantite"]), FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_FLOAT);
+                $quantites = filter_var(array_filter($_POST["quantite"]), FILTER_SANITIZE_NUMBER_FLOAT);
 
 
                 $sql = "INSERT INTO recette (nomRecette, tempsPreparation, instructions, id_categorie, image)
@@ -136,12 +136,12 @@ if (isset($_GET["action"])) {
 
                 if (isset($_POST["submit"])) {
                     $nomRecette = filter_var($_POST["nomRecette"], FILTER_SANITIZE_SPECIAL_CHARS);
-                    $tempsPreparation = filter_var($_POST["tempsPreparation"], FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_INT);
+                    $tempsPreparation = filter_var($_POST["tempsPreparation"], FILTER_SANITIZE_NUMBER_INT);
                     $instructions = filter_var($_POST["instructions"], FILTER_SANITIZE_SPECIAL_CHARS);
                     $id_categorie = filter_var($_POST["id_categorie"], FILTER_SANITIZE_SPECIAL_CHARS);
                     $image = filter_var($_POST["image"], FILTER_SANITIZE_SPECIAL_CHARS);
                     $ingredients = filter_var($_POST["ingredients"], FILTER_SANITIZE_SPECIAL_CHARS);
-                    $quantites = filter_var(array_filter($_POST["quantite"]), FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_INT);
+                    $quantites = filter_var(array_filter($_POST["quantite"]), FILTER_SANITIZE_NUMBER_INT);
 
                     $sql = "UPDATE recette
                             SET nomRecette = :nomRecette,
@@ -207,7 +207,7 @@ if (isset($_GET["action"])) {
         case "addIngredient":
             if (isset($_POST["submit"])) {
                 $nomIngredient = filter_var($_POST["nomIngredient"], FILTER_SANITIZE_SPECIAL_CHARS);
-                $prixIngredient = filter_var($_POST["prixIngredient"], FILTER_SANITIZE_SPECIAL_CHARS | FILTER_SANITIZE_NUMBER_FLOAT);
+                $prixIngredient = filter_var($_POST["prixIngredient"], FILTER_SANITIZE_NUMBER_FLOAT);
                 $uniteMesure = filter_var($_POST["uniteMesure"], FILTER_SANITIZE_SPECIAL_CHARS);
 
                 $sql = "INSERT INTO ingredient (nomIngredient, prixIngredient, uniteMesure)
